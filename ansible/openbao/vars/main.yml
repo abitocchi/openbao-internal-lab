@@ -10,6 +10,13 @@ image:
 config:
   path: /containers_vols/openbao
 
+storage:
+  host:
+    data: /containers_vols/openbao/data
+  
+  container:
+    data: /openbao/data
+
 certs:
   host:
     private_key_path: /containers_vols/openbao/certs/private.key
