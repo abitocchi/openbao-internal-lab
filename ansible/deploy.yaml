@@ -1,0 +1,59 @@
+---
+- name: Certificates creation on localhost
+  hosts: localhost
+
+  vars:
+    certs:
+      host:
+        private_key_path: certs/private.key
+        certificate_path: certs/certificate.pem
+
+  tasks:
+    - name: Ensure the certificate dir is present on localhost
+      ansible.builtin.file:
+        path: "certs"
+        state: directory
+        mode: '0755'
+
+    - name: Ensure cryptography library is present
+      ansible.builtin.pip:
+        name:
+        - cryptography>=1.2.3
+
+    - name: Ensure private key is present(RSA, 4096 bits)
+      community.crypto.openssl_privatekey:
+        path: "{{ certs.host.private_key_path }}"
+
+    - name: Ensure certificate signing request (CSR) is present
+      community.crypto.openssl_csr_pipe:
+        privatekey_path: "{{ certs.host.private_key_path }}"
+        common_name: openbao1
+        organization_name: Sourcesense
+        subject_alt_name:
+          - "DNS:openbao1"
+      register: csr
+
+    - name: Ensure self-signed certificate from CSR is present
+      community.crypto.x509_certificate:
+        path: "{{ certs.host.certificate_path }}"
+        csr_content: "{{ csr.csr }}"
+        privatekey_path: "{{ certs.host.private_key_path }}"
+        provider: selfsigned
+
+- name: Deploy OpenBao server
+  hosts: all
+  become: true
+
+  roles:
+    - role: openbao
+      vars:
+        certs:
+          localhost:
+            private_key_path: certs/private.key
+            certificate_path: certs/certificate.pem
+          host:
+            private_key_path: /containers_vols/openbao/certs/private.key
+            certificate_path: /containers_vols/openbao/certs/certificate.pem
+          container:
+            certificate_path: /etc/bao/certs/certificate.pem
+            private_key_path: /etc/bao/certs/private.key

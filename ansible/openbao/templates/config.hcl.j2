@@ -1,0 +1,19 @@
+ui            = true
+cluster_addr  = "https://127.0.0.1:8200"
+api_addr      = "https://127.0.0.1:8200"
+
+storage "raft" {
+  path = "/path/to/raft/data"
+  node_id = "raft_node_1"
+}
+
+listener "tcp" {
+  address       = "127.0.0.1:8200"
+  tls_cert_file = "{{ certs.container.certificate_path }}"
+  tls_key_file  = "{{ certs.container.private_key_path }}"
+}
+
+telemetry {
+  statsite_address = "127.0.0.1:8200"
+  disable_hostname = true
+}
