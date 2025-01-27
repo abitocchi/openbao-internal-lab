@@ -1,7 +1,7 @@
 ---
 # vars file for openbao
 
-
+user: 1000
 
 image:
   registry: quay.io/openbao/openbao

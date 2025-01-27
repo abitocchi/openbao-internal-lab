@@ -12,6 +12,8 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
+    owner: "{{ user }}"
+    group: "{{ user }}"
     mode: '0755'
 
 - name: Ensure OpenBao configuration is present
@@ -27,12 +29,14 @@
   ansible.builtin.copy:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
+    mode: 755
 
 - name: Ensure OpenBao pod is present
   containers.podman.podman_container:
     name: openbao-server
     image: "{{ image.registry }}:{{ image.tag }}"
-    command: "bao server -config=/etc/bao/config/config.hcl"
+    command: "bao server -dev -config=/etc/bao/config/config.hcl"
+    user: "{{ user }}"
     volume:
       - "{{ config.path }}/config.hcl:/etc/bao/config/config.hcl:z"
       - "{{ certs.host.certificate_path }}:{{ certs.container.certificate_path }}:z"
@@ -40,5 +44,9 @@
       - "{{ storage.host.data }}:{{ storage.container.data }}:z"
     expose:
       - 8200
+      - 8201
+      - 8202
     ports:
       - "8200:8200"
+      - "8201:8201"
+      - "8202:8202"
