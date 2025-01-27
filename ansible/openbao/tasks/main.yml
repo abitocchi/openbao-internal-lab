@@ -37,12 +37,18 @@
   loop:
     - { "src" : "{{ certs.localhost.private_key_path }}", "dest" : "{{ certs.host.private_key_path }}" }
     - { "src" : "{{ certs.localhost.certificate_path }}", "dest" : "{{ certs.host.certificate_path }}" }
+    - { "src" : "{{ certs.localhost.caCertificate }}",    "dest" : "{{ certs.host.caCertificate }}" }
+    - { "src" : "{{ certs.localhost.caCertificate }}",    "dest" : "/etc/pki/ca-trust/source/anchors/ca.pem" }
   ansible.builtin.copy:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
     owner: "{{ user }}"
     group: "{{ user }}"
     mode: 777
+
+- name: Ensure ca is updated
+  become: true
+  ansible.builtin.shell: "update-ca-trust extract"
 
 - name: Ensure OpenBao pod is present
   containers.podman.podman_container:
@@ -54,7 +60,9 @@
       - "{{ config.path }}/config.hcl:/openbao/config/config.hcl:z"
       - "{{ certs.host.certificate_path }}:{{ certs.container.certificate_path }}:Z"
       - "{{ certs.host.private_key_path }}:{{ certs.container.private_key_path }}:Z"
+      - "{{ certs.host.caCertificate }}:{{ certs.container.caCertificate }}:Z"
       - "{{ storage.host.data }}:{{ storage.container.data }}:Z"
+      - "/etc/ssl/certs:/etc/ssl/certs:ro"
     ports:
       - "8200:8200"
       - "8201:8201"

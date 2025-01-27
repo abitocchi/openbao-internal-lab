@@ -7,6 +7,7 @@
       host:
         private_key_path: certs/private.key
         certificate_path: certs/certificate.pem
+        caCertificate: certs/ca.pem
 
   tasks:
     - name: Ensure the certificate dir is present on localhost
@@ -24,6 +25,26 @@
       community.crypto.openssl_privatekey:
         path: "{{ certs.host.private_key_path }}"
 
+    - name: Create certificate signing request (CSR) for CA certificate
+      community.crypto.openssl_csr_pipe:
+        privatekey_path: "{{ certs.host.private_key_path }}"
+        common_name: Sourcesense
+        use_common_name_for_san: false
+        basic_constraints:
+          - 'CA:TRUE'
+        basic_constraints_critical: true
+        key_usage:
+          - keyCertSign
+        key_usage_critical: true
+      register: ca_csr
+
+    - name: Create self-signed CA certificate from CSR
+      community.crypto.x509_certificate:
+        path: "{{ certs.host.caCertificate }}"
+        csr_content: "{{ ca_csr.csr }}"
+        privatekey_path: "{{ certs.host.private_key_path }}"
+        provider: selfsigned
+
     - name: Ensure certificate signing request (CSR) is present
       community.crypto.openssl_csr_pipe:
         privatekey_path: "{{ certs.host.private_key_path }}"
@@ -31,14 +52,35 @@
         organization_name: Sourcesense
         subject_alt_name:
           - "DNS:openbao1"
+          - "DNS:openbao2"
+          - "DNS:openbao3"
       register: csr
 
     - name: Ensure self-signed certificate from CSR is present
       community.crypto.x509_certificate:
         path: "{{ certs.host.certificate_path }}"
+        ownca_path: "{{ certs.host.caCertificate }}"
+        ownca_privatekey_path: "{{ certs.host.private_key_path }}"
+        ownca_not_after: +365d
+        ownca_not_before: "-1d"
         csr_content: "{{ csr.csr }}"
         privatekey_path: "{{ certs.host.private_key_path }}"
         provider: selfsigned
+
+# - name: Sign certificate with our CA
+#   community.crypto.x509_certificate_pipe:
+#     csr_content: "{{ csr.csr }}"
+#     provider: ownca
+#     ownca_path: "{{ certs.host.caCertificate }}"
+#     ownca_privatekey_path: "{{ certs.host.private_key_path }}"
+#     ownca_not_after: +365d
+#     ownca_not_before: "-1d"
+#   register: certificate
+
+# - name: Write certificate file on server_1
+#   ansible.builtin.copy:
+#     dest: "{{ certs.host.certificate_path }}"
+#     content: "{{ certificate.certificate }}"
 
 - name: Deploy OpenBao server
   hosts: all

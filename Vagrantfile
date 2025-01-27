@@ -22,7 +22,7 @@ Vagrant.configure("2") do |config|
 
       if opts[:name] == "openbao3"
         config.vm.provision "ansible" do |ansible|
-          ansible.limit = "all"
+          ansible.limit = "all,localhost"
           ansible.playbook = "ansible/deploy.yaml"
         end
       end
