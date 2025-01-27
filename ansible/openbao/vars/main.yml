@@ -23,5 +23,6 @@ certs:
     certificate_path: /containers_vols/openbao/certs/certificate.pem
 
   container:
-    certificate_path: /etc/bao/certs/certificate.pem
-    private_key_path: /etc/bao/certs/private.key
+    certificate_path: /openbao/certs/certificate.pem
+    private_key_path: /openbao/certs/private.key
+    caCertificate: /openbao/certs/ca.pem

@@ -1,11 +1,13 @@
 ---
 
 - name: Ensure the latest version of podman is present
+  become: true
   ansible.builtin.dnf:
     name: podman
     state: latest
 
 - name: Ensure the data dir is present
+  become: true
   loop:
     - "{{ config.path }}/certs"
     - "{{ storage.host.data }}"
@@ -20,6 +22,15 @@
   ansible.builtin.template:
     src: config.hcl.j2
     dest: "{{ config.path }}/config.hcl"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: "0755"
+
+- name: Ensure host file is present
+  become: true
+  ansible.builtin.template:
+    src: hosts.j2
+    dest: /etc/hosts
     mode: u=rw,g=r,o=r
 
 - name: Ensure private key and certificate are copied
@@ -29,23 +40,21 @@
   ansible.builtin.copy:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
-    mode: 755
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: 777
 
 - name: Ensure OpenBao pod is present
   containers.podman.podman_container:
-    name: openbao-server
+    name: openbao
     image: "{{ image.registry }}:{{ image.tag }}"
-    command: "bao server -dev -config=/etc/bao/config/config.hcl"
+    command: "bao server -config=/openbao/config/config.hcl"
     user: "{{ user }}"
     volume:
-      - "{{ config.path }}/config.hcl:/etc/bao/config/config.hcl:z"
-      - "{{ certs.host.certificate_path }}:{{ certs.container.certificate_path }}:z"
-      - "{{ certs.host.private_key_path }}:{{ certs.container.private_key_path }}:z"
-      - "{{ storage.host.data }}:{{ storage.container.data }}:z"
-    expose:
-      - 8200
-      - 8201
-      - 8202
+      - "{{ config.path }}/config.hcl:/openbao/config/config.hcl:z"
+      - "{{ certs.host.certificate_path }}:{{ certs.container.certificate_path }}:Z"
+      - "{{ certs.host.private_key_path }}:{{ certs.container.private_key_path }}:Z"
+      - "{{ storage.host.data }}:{{ storage.container.data }}:Z"
     ports:
       - "8200:8200"
       - "8201:8201"
