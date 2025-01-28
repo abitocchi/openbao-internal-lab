@@ -1,10 +1,8 @@
 # openbao-internal-lab
 
-## generate certificates
+This project allows to setup an openbao cluster with a single command
 ```
-openssl genrsa -out openbao-internal.key 2048
-
-openssl req -new -sha256 -key openbao-internal.key -subj "/C=IT/ST=RM/O=Sourcesense/CN=openbao.lab.local" -out openbao-internal.csr
-
-openssl x509 -req -in openbao-internal.csr  -out openbao-internal.crt -days 500 -sha256
+vagrant up
 ```
+
+Once the provisioning has ended it's possible to unseal the openbao server by using this [guide](ansible/README.md)
