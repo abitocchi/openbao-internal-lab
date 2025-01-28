@@ -8,29 +8,25 @@ listener "tcp" {
   tls_key_file  = "{{ certs.container.private_key_path }}"
 }
 
+seal "pkcs11" {
+  lib = "/usr/lib64/softhsm/libsofthsm.so"
+  token_label = "OpenBao"
+  pin = "4321"
+  key_label = "bao-root-key-rsa"
+  rsa_oaep_hash = "sha1"
+}
+
 storage "raft" {
   path    = "{{ storage.container.data }}"
   node_id = "{{ inventory_hostname }}"
  
+{% for host in hostvars %}
   retry_join {
-    leader_tls_servername   = "openbao1"
-    leader_api_addr         = "https://openbao1:8200"
+    leader_tls_servername   = "{{ host }}"
+    leader_api_addr         = "https://{{ host }}:8200"
     leader_ca_cert_file     = "{{ certs.container.caCertificate}}"
     leader_client_cert_file = "{{ certs.container.certificate_path }}"
     leader_client_key_file  = "{{ certs.container.private_key_path }}"
   }
-  retry_join {
-    leader_tls_servername   = "openbao2"
-    leader_api_addr         = "https://openbao2:8200"
-    leader_ca_cert_file     = "{{ certs.container.caCertificate}}"
-    leader_client_cert_file = "{{ certs.container.certificate_path }}"
-    leader_client_key_file  = "{{ certs.container.private_key_path }}"
-  }
-  retry_join {
-    leader_tls_servername   = "openbao3"
-    leader_api_addr         = "https://openbao3:8200"
-    leader_ca_cert_file     = "{{ certs.container.caCertificate}}"
-    leader_client_cert_file = "{{ certs.container.certificate_path }}"
-    leader_client_key_file  = "{{ certs.container.private_key_path }}"
-  }
+{% endfor %}  
 }
