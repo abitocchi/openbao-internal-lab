@@ -1,0 +1,10 @@
+{
+    "username" : "devops",
+    "password" : "devops",
+    "nested"   : {
+        "name" : "object",
+        "other": {
+            "name" : "other nested"
+        }
+    }
+}
