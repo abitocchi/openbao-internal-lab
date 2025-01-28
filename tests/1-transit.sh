@@ -18,3 +18,21 @@ plaintext=$(echo "$outcome" \
 [ "$?" -ne 0 ] && log "ERROR" "Can't decrypt secret with transit engine #0"
 echo "$outcome"
 echo "$plaintext"
+
+
+log "INFO" "Encrypting secret with transit engine #1"
+outcome=$(bao write transit/encrypt/my-key plaintext=$(cat "$SCRIPT_DIR/data/0-data.json" | base64))
+ciphertext=$( echo "$outcome" \
+    | grep ciphertext \
+    | awk '{print $2}')
+[ "$?" -ne 0 ] && log "ERROR" "Can't encrypt secret with transit engine #1"
+echo "$outcome"
+
+log "INFO" "Decrypting secret with transit engine #1"
+outcome=$(bao write transit/decrypt/my-key ciphertext="$ciphertext")
+plaintext=$(echo "$outcome" \
+    | grep plaintext \
+    | awk '{print $2}' | base64 --decode)
+[ "$?" -ne 0 ] && log "ERROR" "Can't decrypt secret with transit engine #1"
+echo "$outcome"
+echo "$plaintext"
