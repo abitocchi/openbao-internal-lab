@@ -56,17 +56,6 @@
           - "DNS:openbao3"
       register: csr
 
-    # - name: Ensure self-signed certificate from CSR is present
-    #   community.crypto.x509_certificate:
-    #     path: "{{ certs.host.certificate_path }}"
-    #     ownca_path: "{{ certs.host.caCertificate }}"
-    #     ownca_privatekey_path: "{{ certs.host.private_key_path }}"
-    #     ownca_not_after: +365d
-    #     ownca_not_before: "-1d"
-    #     csr_content: "{{ csr.csr }}"
-    #     privatekey_path: "{{ certs.host.private_key_path }}"
-    #     provider: selfsigned
-
     - name: Ensure certificate is signend with our CA
       community.crypto.x509_certificate_pipe:
         csr_content: "{{ csr.csr }}"
