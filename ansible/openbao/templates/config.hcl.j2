@@ -8,14 +8,6 @@ listener "tcp" {
   tls_key_file  = "{{ certs.container.private_key_path }}"
 }
 
-seal "pkcs11" {
-  lib = "/usr/lib64/softhsm/libsofthsm.so"
-  token_label = "OpenBao"
-  pin = "4321"
-  key_label = "bao-root-key-rsa"
-  rsa_oaep_hash = "sha1"
-}
-
 storage "raft" {
   path    = "{{ storage.container.data }}"
   node_id = "{{ inventory_hostname }}"
