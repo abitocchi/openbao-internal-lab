@@ -12,7 +12,3 @@ galaxy_info:
     versions:
     - 9.5.20241203
 
-dependencies:
-- containers.podman
-- community.crypto
-

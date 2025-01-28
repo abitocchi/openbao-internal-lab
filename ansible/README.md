@@ -5,66 +5,68 @@ this folder contains instructions and resources to install OpenBao with ansible
 ## after playbook execution
 
 log into the first vm with the command
-```
+```bash
 vagrant ssh openbao1
 ```
 
 become root
-```
+```bash
 sudo -i
 ```
 
 check if the container is running
-```
+```bash
 podman ps
 ```
 
 if it's running it has to be unsealed so enter into the container
-```
+```bash
 podman exec --tty -it openbao /bin/sh
 ```
 
 and exec the following comand and take note of the unseal key
-```
+```bash
 export VAULT_SKIP_VERIFY=true
 bao operator init
 ```
 
 this is an example of the output returned
 ```
-#openbao1
-Unseal Key 1: bhwIkkpcIYTTP07jXBZmbZhI4Bius10sWwohGoz6wcWw
-Unseal Key 2: mClrDjj36adwiWKfC1B8s7HgbUFs4L2uPsmSfc1Lxu+K
-Unseal Key 3: BkikJ9Zs+TqJGzfmRtHfS/QxHOiSvpfhJ1Ed89O7lzVS
-Unseal Key 4: mVa6cEFDgWkDZjz40phwzTqmrk1tXJRSV9vWrFthQFhh
-Unseal Key 5: NZs2GvdhX7qUIiqA7aJms2zF086wjDyWHHY8EgDjoo8I
+Unseal Key 1: Vp32H0G0wLebgMdMFdIT4pInr126WZdayGOP0EMTYCX+
+Unseal Key 2: 8a48f7geYHDjMWd/YoDIpFqhfskFd4BiK9w3f0YadiWG
+Unseal Key 3: mUAKGHMA7lvGkK627bTMBU2QdXSBwJz80mA3tcbdZqBP
+Unseal Key 4: EhZvsWFrpPDog0JKurOWE8uCs43epfEdRjhu3ULdDdXx
+Unseal Key 5: TuyLp0uRvkKfDiaQf90Mma2Ikarc54rxtmPk1/gvsoe0
 
-Initial Root Token: s.AdTIiKSCJ4A3tLPDuZMVkWgm
+Initial Root Token: s.BqHpxZ0akNYPF21vx4gKs4Kg
+
+Vault initialized with 5 key shares and a key threshold of 3. Please securely
+distribute the key shares printed above. When the Vault is re-sealed,
+restarted, or stopped, you must supply at least 3 of these keys to unseal it
+before it can start servicing requests.
+
+Vault does not store the generated root key. Without at least 3 keys to
+reconstruct the root key, Vault will remain permanently sealed!
+
+It is possible to generate new unseal keys, provided you have a quorum of
+existing unseal keys shares. See "bao operator rekey" for more information.
 ```
 
-```
-#openbao2
-Unseal Key 1: 5VsqBQpkTjOVzEqAXihmhPiQI44w/j/PC1lGx8ci8EH0
-Unseal Key 2: NtXVjZYQakyJdiaemechFr9HWnwGJHWy5IPLAGnJZnLs
-Unseal Key 3: Ub/pMQeHel5MN5Aobinz2pg6GtTw+Eq2EFJEdhusAzxF
-Unseal Key 4: LShPmTfHnJYnlnD8JeWhzffHkl8oMfnDsgUeUkLAXVlT
-Unseal Key 5: Z2u9yzFK0PfspBWCU2psx68TAWZZUtpjHrg6SiedBDGv
+then run the command to unseal and provide three keys obtained with the previous command
 
-Initial Root Token: s.QmYk9nwhIkhWL2aZjfKYkg6O
-```
-
-```
-#openbao3
-Unseal Key 1: NfZWLyRUCknscGQMXhebadtZCrxkoL72hyk0vaMzdiOT
-Unseal Key 2: WwswYRLjEMJAXfPQDQKCS4hmhJX3iWURHTDM7bTZZnA7
-Unseal Key 3: AUWGfRRjlfkoREfWj3Sv/AzBiPuy2bvAajsBR2i4cyY+
-Unseal Key 4: sgRkLlirTviW/57LvW+dnI0yv6kmgVk4Lvmli1tgXwIL
-Unseal Key 5: XrC8HKjarPwd2cv0a1e39sfvm6/LXChcKU5Rkd2WILeS
-
-Initial Root Token: s.ZAGcnwIUjyIHw84Osb37U0mM
-```
-
-then run the command to unseal and provide one of the key obtained with the previous command, you have to unseal each server one by one
-```
+```bash
 bao operator unseal
+```
+
+once the vault has been unsealed perform the login into the other 2 vms and start the pods
+```bash
+# for openbao2
+vagrant ssh openbao2
+sudo -i
+podman start openbao
+
+# for openbao3
+vagrant ssh openbao3
+sudo -i
+podman start openbao
 ```

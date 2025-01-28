@@ -50,12 +50,13 @@
   become: true
   ansible.builtin.shell: "update-ca-trust extract"
 
-- name: Ensure OpenBao pod is present
+- name: Ensure OpenBao pod are present but stopped
   containers.podman.podman_container:
     name: openbao
     image: "{{ image.registry }}:{{ image.tag }}"
     command: "bao server -config=/openbao/config/config.hcl"
     user: "{{ user }}"
+    state: stopped
     volume:
       - "{{ config.path }}/config.hcl:/openbao/config/config.hcl:z"
       - "{{ certs.host.certificate_path }}:{{ certs.container.certificate_path }}:Z"
@@ -66,4 +67,22 @@
     ports:
       - "8200:8200"
       - "8201:8201"
-      - "8202:8202"
+
+- name: Ensure that OpenBao pod is running on the first vm
+  when: inventory_hostname == "openbao1"
+  containers.podman.podman_container:
+    name: openbao
+    image: "{{ image.registry }}:{{ image.tag }}"
+    command: "bao server -config=/openbao/config/config.hcl"
+    user: "{{ user }}"
+    state: started
+    volume:
+      - "{{ config.path }}/config.hcl:/openbao/config/config.hcl:z"
+      - "{{ certs.host.certificate_path }}:{{ certs.container.certificate_path }}:Z"
+      - "{{ certs.host.private_key_path }}:{{ certs.container.private_key_path }}:Z"
+      - "{{ certs.host.caCertificate }}:{{ certs.container.caCertificate }}:Z"
+      - "{{ storage.host.data }}:{{ storage.container.data }}:Z"
+      - "/etc/ssl/certs:/etc/ssl/certs:ro"
+    ports:
+      - "8200:8200"
+      - "8201:8201"
