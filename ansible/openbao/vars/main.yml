@@ -4,8 +4,8 @@
 user: 1000
 
 image:
-  registry: quay.io/openbao/openbao
-  tag: 2.1.1
+  registry: quay.io/abitocchi/openbao
+  tag: 2.1.1-dev-ui
 
 config:
   path: /containers_vols/openbao
