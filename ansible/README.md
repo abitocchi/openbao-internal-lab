@@ -26,19 +26,19 @@ podman exec --tty -it openbao /bin/sh
 
 and exec the following comand and take note of the unseal key
 ```bash
-export VAULT_SKIP_VERIFY=true
+export BAO_SKIP_VERIFY=true
 bao operator init
 ```
 
 this is an example of the output returned
 ```
-Unseal Key 1: Vp32H0G0wLebgMdMFdIT4pInr126WZdayGOP0EMTYCX+
-Unseal Key 2: 8a48f7geYHDjMWd/YoDIpFqhfskFd4BiK9w3f0YadiWG
-Unseal Key 3: mUAKGHMA7lvGkK627bTMBU2QdXSBwJz80mA3tcbdZqBP
-Unseal Key 4: EhZvsWFrpPDog0JKurOWE8uCs43epfEdRjhu3ULdDdXx
-Unseal Key 5: TuyLp0uRvkKfDiaQf90Mma2Ikarc54rxtmPk1/gvsoe0
+Unseal Key 1: keus1CHD+1uDnvvm3yN8wDQ46r5Eza7Nv0H/GyqCMG0Y
+Unseal Key 2: MRGLedANldkvfaS5eXfOHTtM+vMyDVw0vVD7gzdh6LkF
+Unseal Key 3: RRdmCyeIdPvCgQDLsgsJ96h44ARERyKt9499V+uauq2F
+Unseal Key 4: tPmu6p4bwfns4S9nk3pHi70VrbL1c12Vzflq1iVnE+R4
+Unseal Key 5: DkJ7rh84fPwG304Jb7IHLFMbMMot+xlPCeVUaO0Qnu0f
 
-Initial Root Token: s.BqHpxZ0akNYPF21vx4gKs4Kg
+Initial Root Token: s.KS4YsHiJC4rI3p2dzU2X1M4b
 
 Vault initialized with 5 key shares and a key threshold of 3. Please securely
 distribute the key shares printed above. When the Vault is re-sealed,
@@ -64,9 +64,15 @@ once the vault has been unsealed perform the login into the other 2 vms and star
 vagrant ssh openbao2
 sudo -i
 podman start openbao
+podman exec --tty -it openbao /bin/sh
+bao operator unseal
+# provide three keys
 
 # for openbao3
 vagrant ssh openbao3
 sudo -i
 podman start openbao
+podman exec --tty -it openbao /bin/sh
+bao operator unseal
+# provide three keys
 ```
