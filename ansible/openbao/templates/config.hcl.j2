@@ -1,6 +1,6 @@
 ui            = true
-cluster_addr  = "https://{{ host }}:8201"
-api_addr      = "https://{{ host }}:8200"
+cluster_addr  = "https://{{ inventory_hostname }}:8201"
+api_addr      = "https://{{ inventory_hostname }}:8200"
 
 listener "tcp" {
   address       = "0.0.0.0:8200"
@@ -10,7 +10,7 @@ listener "tcp" {
 
 storage "raft" {
   path    = "{{ storage.container.data }}"
-  node_id = "raft_{{ host }}"
+  node_id = "raft_{{ inventory_hostname }}"
  
 {% for host in hostvars %}
   retry_join {
