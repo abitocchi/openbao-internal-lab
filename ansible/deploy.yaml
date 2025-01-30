@@ -10,66 +10,76 @@
         caCertificate: certs/ca.pem
 
   tasks:
-    - name: Ensure the certificate dir is present on localhost
-      ansible.builtin.file:
-        path: "certs"
-        state: directory
-        mode: '0755'
 
-    - name: Ensure cryptography library is present
-      ansible.builtin.pip:
-        name:
-        - cryptography>=1.2.3
+    - name: Retrieves informations about certs directory
+      ansible.builtin.stat:
+        path: certs
+      register: certs_directory
 
-    - name: Ensure private key is present(RSA, 4096 bits)
-      community.crypto.openssl_privatekey:
-        path: "{{ certs.host.private_key_path }}"
+    - name: Ensure the certificates are created
+      when: certs_directory.stat.isdir is not defined
+      block:
 
-    - name: Create certificate signing request (CSR) for CA certificate
-      community.crypto.openssl_csr_pipe:
-        privatekey_path: "{{ certs.host.private_key_path }}"
-        common_name: Sourcesense
-        use_common_name_for_san: false
-        basic_constraints:
-          - 'CA:TRUE'
-        basic_constraints_critical: true
-        key_usage:
-          - keyCertSign
-        key_usage_critical: true
-      register: ca_csr
+      - name: Ensure the certificate dir is present on localhost
+        ansible.builtin.file:
+          path: "certs"
+          state: directory
+          mode: '0755'
 
-    - name: Create self-signed CA certificate from CSR
-      community.crypto.x509_certificate:
-        path: "{{ certs.host.caCertificate }}"
-        csr_content: "{{ ca_csr.csr }}"
-        privatekey_path: "{{ certs.host.private_key_path }}"
-        provider: selfsigned
+      - name: Ensure cryptography library is present
+        ansible.builtin.pip:
+          name:
+          - cryptography>=1.2.3
 
-    - name: Ensure certificate signing request (CSR) is present
-      community.crypto.openssl_csr_pipe:
-        privatekey_path: "{{ certs.host.private_key_path }}"
-        common_name: openbao1
-        organization_name: Sourcesense
-        subject_alt_name:
-          - "DNS:openbao1"
-          - "DNS:openbao2"
-          - "DNS:openbao3"
-      register: csr
+      - name: Ensure private key is present(RSA, 4096 bits)
+        community.crypto.openssl_privatekey:
+          path: "{{ certs.host.private_key_path }}"
 
-    - name: Ensure certificate is signend with our CA
-      community.crypto.x509_certificate_pipe:
-        csr_content: "{{ csr.csr }}"
-        provider: ownca
-        ownca_path: "{{ certs.host.caCertificate }}"
-        ownca_privatekey_path: "{{ certs.host.private_key_path }}"
-        ownca_not_after: +365d
-        ownca_not_before: "-1d"
-      register: certificate
+      - name: Create certificate signing request (CSR) for CA certificate
+        community.crypto.openssl_csr_pipe:
+          privatekey_path: "{{ certs.host.private_key_path }}"
+          common_name: Sourcesense
+          use_common_name_for_san: false
+          basic_constraints:
+            - 'CA:TRUE'
+          basic_constraints_critical: true
+          key_usage:
+            - keyCertSign
+          key_usage_critical: true
+        register: ca_csr
 
-    - name: Ensure certificate is present on localhost
-      ansible.builtin.copy:
-        dest: "{{ certs.host.certificate_path }}"
-        content: "{{ certificate.certificate }}"
+      - name: Create self-signed CA certificate from CSR
+        community.crypto.x509_certificate:
+          path: "{{ certs.host.caCertificate }}"
+          csr_content: "{{ ca_csr.csr }}"
+          privatekey_path: "{{ certs.host.private_key_path }}"
+          provider: selfsigned
+
+      - name: Ensure certificate signing request (CSR) is present
+        community.crypto.openssl_csr_pipe:
+          privatekey_path: "{{ certs.host.private_key_path }}"
+          common_name: openbao1
+          organization_name: Sourcesense
+          subject_alt_name:
+            - "DNS:openbao1"
+            - "DNS:openbao2"
+            - "DNS:openbao3"
+        register: csr
+
+      - name: Ensure certificate is signend with our CA
+        community.crypto.x509_certificate_pipe:
+          csr_content: "{{ csr.csr }}"
+          provider: ownca
+          ownca_path: "{{ certs.host.caCertificate }}"
+          ownca_privatekey_path: "{{ certs.host.private_key_path }}"
+          ownca_not_after: +365d
+          ownca_not_before: "-1d"
+        register: certificate
+
+      - name: Ensure certificate is present on localhost
+        ansible.builtin.copy:
+          dest: "{{ certs.host.certificate_path }}"
+          content: "{{ certificate.certificate }}"
 
 - name: Deploy OpenBao server
   hosts: all
